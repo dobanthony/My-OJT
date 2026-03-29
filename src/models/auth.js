@@ -42,12 +42,17 @@ export const authModel = {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-    // Get user role from profiles
-    const { data: profile } = await supabase
+    // Get user role from profiles – use maybeSingle() to avoid errors when no row exists
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error fetching profile role:', error)
+      return { ...user, role: 'student' }
+    }
 
     return { ...user, role: profile?.role || 'student' }
   },

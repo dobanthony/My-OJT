@@ -30,7 +30,7 @@
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/student/dtr">
-              <i class="bi bi-calendar-check me-1"></i> OJT Time Tracker
+              <i class="bi bi-calendar-check me-1"></i> DTR
             </router-link>
           </li>
           <li class="nav-item">
