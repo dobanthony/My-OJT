@@ -39,20 +39,21 @@
         </div>
         <div class="col-12 col-sm-6 col-lg-4">
           <div class="card h-100 border-0 shadow-sm rounded-3 summary-card">
-            <div class="card-body d-flex align-items-center">
-              <div class="flex-shrink-0 me-3">
+            <div class="card-body d-flex align-items-center flex-wrap flex-sm-nowrap">
+              <div class="flex-shrink-0 me-3 mb-2 mb-sm-0">
                 <i class="bi bi-trophy fs-1 text-success"></i>
               </div>
               <div class="flex-grow-1">
                 <h6 class="card-subtitle mb-1 text-muted">Required Total</h6>
-                <input 
-                  type="number" 
-                  class="form-control form-control-lg fw-bold" 
-                  v-model.number="totalRequiredHours" 
-                  @change="updateSettings"
-                  style="font-size: 1.5rem; padding: 0.25rem 0.5rem; width: auto;"
-                />
-                <small class="text-muted">hours</small>
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                  <input 
+                    type="number" 
+                    class="form-control required-hours-input" 
+                    v-model.number="totalRequiredHours" 
+                    @change="updateSettings"
+                  />
+                  <small class="text-muted">hours</small>
+                </div>
               </div>
             </div>
           </div>
@@ -448,6 +449,14 @@ onMounted(async () => {
   background-color: #dc3545;
   color: white;
 }
+
+/* Responsive input for required hours */
+.required-hours-input {
+  width: 100%;
+  max-width: 120px;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.5rem;
+}
 @media (max-width: 576px) {
   .dtr-title {
     font-size: 1.5rem;
@@ -463,6 +472,18 @@ onMounted(async () => {
   }
   .summary-card .fs-1 {
     font-size: 2rem !important;
+  }
+  /* Make required hours input full width on mobile */
+  .required-hours-input {
+    max-width: 100%;
+    font-size: 1rem;
+  }
+  .summary-card .card-body {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  .summary-card .flex-shrink-0 {
+    margin-bottom: 0.5rem;
   }
 }
 </style>
