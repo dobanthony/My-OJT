@@ -23,13 +23,23 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label small text-secondary">Password</label>
-                  <input 
-                    type="password" 
-                    class="form-control" 
-                    v-model="password" 
-                    placeholder="••••••••"
-                    required 
-                  />
+                  <div class="input-group">
+                    <input 
+                      :type="showPassword ? 'text' : 'password'" 
+                      class="form-control" 
+                      v-model="password" 
+                      placeholder="••••••••"
+                      required 
+                    />
+                    <button 
+                      class="btn btn-outline-secondary" 
+                      type="button" 
+                      @click="togglePassword"
+                      style="background-color: white;"
+                    >
+                      <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                    </button>
+                  </div>
                 </div>
                 <button 
                   type="submit" 
@@ -79,6 +89,7 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const showPassword = ref(false)
 
 const toast = ref({ show: false, type: 'success', message: '' })
 
@@ -88,6 +99,10 @@ const showToast = (type, message) => {
 }
 
 const closeToast = () => { toast.value.show = false }
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
 
 const handleLogin = async () => {
   loading.value = true
@@ -125,5 +140,13 @@ const handleLogin = async () => {
 .form-control:focus {
   border-color: #0d6efd;
   box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+}
+.input-group .btn-outline-secondary {
+  border-color: #ced4da;
+  border-left: none;
+}
+.input-group .btn-outline-secondary:hover {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
 }
 </style>
