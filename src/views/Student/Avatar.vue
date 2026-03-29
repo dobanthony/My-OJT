@@ -1,57 +1,131 @@
 <template>
-  <div class="container mt-5">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header">
-            <h4>{{ profileExists ? 'Edit Profile' : 'Create Profile' }}</h4>
-          </div>
-          <div class="card-body">
-            <form @submit.prevent="saveProfile">
-              <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-control" v-model="form.full_name" required />
+  <div class="profile-container">
+    <div class="container mt-4">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+          <!-- Profile Card -->
+          <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-0 pt-4 pb-0 text-center">
+              <div class="avatar-icon mb-3">
+                <i class="bi bi-person-circle text-primary" style="font-size: 4rem;"></i>
               </div>
-              <div class="mb-3">
-                <label class="form-label">Age</label>
-                <input 
-                  type="number" 
-                  class="form-control" 
-                  v-model="form.age" 
-                  min="15" 
-                  max="100" 
-                  required 
-                />
-                <div class="form-text">Age must be between 15 and 100 years.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Gender</label>
-                <select class="form-select" v-model="form.gender" required>
-                  <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Address</label>
-                <textarea class="form-control" v-model="form.address" rows="2" required></textarea>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Contact Number</label>
-                <input 
-                  type="tel" 
-                  class="form-control" 
-                  v-model="form.contact_number" 
-                  @input="handleContactInput"
-                  required 
-                />
-                <div class="form-text">Must start with 09 and have exactly 11 digits (numbers only).</div>
-              </div>
-              <button type="submit" class="btn btn-primary" :disabled="saving">
-                {{ saving ? 'Saving...' : 'Save Profile' }}
-              </button>
-            </form>
+              <h4 class="text-primary mb-1">
+                {{ profileExists ? 'Edit Profile' : 'Create Profile' }}
+              </h4>
+              <p class="text-muted small">Fill in your personal details</p>
+            </div>
+            <div class="card-body p-4 p-lg-5">
+              <form @submit.prevent="saveProfile">
+                <!-- Full Name -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold text-secondary">
+                    <i class="bi bi-person me-1"></i> Full Name
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                      <i class="bi bi-person-fill text-primary"></i>
+                    </span>
+                    <input 
+                      type="text" 
+                      class="form-control border-start-0" 
+                      v-model="form.full_name" 
+                      placeholder="Juan Dela Cruz"
+                      required 
+                    />
+                  </div>
+                </div>
+
+                <!-- Age -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold text-secondary">
+                    <i class="bi bi-cake2 me-1"></i> Age
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                      <i class="bi bi-calendar-heart text-primary"></i>
+                    </span>
+                    <input 
+                      type="number" 
+                      class="form-control border-start-0" 
+                      v-model="form.age" 
+                      min="15" 
+                      max="100" 
+                      required 
+                    />
+                  </div>
+                  <div class="form-text">Age must be between 15 and 100 years.</div>
+                </div>
+
+                <!-- Gender -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold text-secondary">
+                    <i class="bi bi-gender-ambiguous me-1"></i> Gender
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                      <i class="bi bi-gender-male text-primary"></i>
+                    </span>
+                    <select class="form-select border-start-0" v-model="form.gender" required>
+                      <option value="">Select</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Address -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold text-secondary">
+                    <i class="bi bi-house-door me-1"></i> Address
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                      <i class="bi bi-building text-primary"></i>
+                    </span>
+                    <textarea 
+                      class="form-control border-start-0" 
+                      v-model="form.address" 
+                      rows="2" 
+                      placeholder="Enter your full address"
+                      required
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Contact Number -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold text-secondary">
+                    <i class="bi bi-telephone me-1"></i> Contact Number
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                      <i class="bi bi-phone-fill text-primary"></i>
+                    </span>
+                    <input 
+                      type="tel" 
+                      class="form-control border-start-0" 
+                      v-model="form.contact_number" 
+                      @input="handleContactInput"
+                      placeholder="09xxxxxxxxx"
+                      required 
+                    />
+                  </div>
+                  <div class="form-text">Must start with 09 and have exactly 11 digits (numbers only).</div>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                  type="submit" 
+                  class="btn btn-primary w-100 rounded-pill py-2 fw-semibold" 
+                  :disabled="saving"
+                >
+                  <i v-if="!saving" class="bi bi-save me-2"></i>
+                  <span v-if="saving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  {{ saving ? 'Saving...' : 'Save Profile' }}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -77,10 +151,6 @@
         </div>
       </div>
     </div>
-  </div>
-  
-  <div>
-    <div class="mt-4"></div>
   </div>
 </template>
 
@@ -191,7 +261,61 @@ const saveProfile = async () => {
 </script>
 
 <style scoped>
-.toast-container {
-  z-index: 1050;
+.profile-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+.card {
+  overflow: hidden;
+}
+.card-header {
+  background: white;
+}
+.avatar-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e3f2fd;
+  border-radius: 50%;
+}
+.input-group-text {
+  border-right: none;
+  background-color: #f8f9fa;
+}
+.form-control, .form-select {
+  border-left: none;
+}
+.form-control:focus, .form-select:focus, .input-group-text:focus-within {
+  border-color: #0d6efd;
+  box-shadow: none;
+}
+.form-control:focus, .form-select:focus {
+  border-left: none;
+}
+.btn-primary {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13,110,253,0.3);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+@media (max-width: 576px) {
+  .card-body {
+    padding: 1.5rem !important;
+  }
+  .avatar-icon i {
+    font-size: 3rem !important;
+  }
+  .avatar-icon {
+    width: 60px;
+    height: 60px;
+  }
 }
 </style>

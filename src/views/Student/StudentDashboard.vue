@@ -1,120 +1,134 @@
 <template>
-  <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <h1>Student Dashboard</h1>
-    </div>
-    <p>Welcome, {{ authStore.user?.email }}! You have student privileges.</p>
+  <div class="dashboard-container">
+    <div class="container mt-4">
+      <!-- Header with avatar icon -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+          <h1 class="dashboard-title">
+            <i class="bi bi-speedometer2 me-2 text-primary"></i>
+            Student Dashboard
+          </h1>
+          <p class="text-muted mb-0">
+            <i class="bi bi-person-circle me-1"></i>
+            Welcome, {{ authStore.profile?.full_name || authStore.user?.email }}!
+          </p>
+        </div>
+      </div>
 
-    <!-- Summary Cards (fully responsive) -->
-    <div class="row mt-4">
-      <div class="col-12 col-sm-6 col-md-4 mb-3">
-        <div class="card h-100 text-dark" style="background-color: #e3f2fd;">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <h5 class="card-title">Total Required OJT Hours</h5>
-                <h2 class="card-text">{{ formatHours(totalRequiredHours) }}</h2>
+      <!-- Summary Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-3 summary-card">
+            <div class="card-body d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <i class="bi bi-clock-history fs-1 text-primary"></i>
               </div>
-              <i class="bi bi-clock-history fs-1"></i>
+              <div class="flex-grow-1">
+                <h6 class="card-subtitle mb-1 text-muted">Total Required</h6>
+                <h3 class="card-text mb-0 fw-bold">{{ formatHours(totalRequiredHours) }}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-3 summary-card">
+            <div class="card-body d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-subtitle mb-1 text-muted">Total Worked</h6>
+                <h3 class="card-text mb-0 fw-bold">{{ formatHours(totalWorkedHours) }}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-3 summary-card">
+            <div class="card-body d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <i class="bi bi-hourglass-split fs-1 text-warning"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-subtitle mb-1 text-muted">Remaining</h6>
+                <h3 class="card-text mb-0 fw-bold">{{ formatHours(remainingHours) }}</h3>
+                <small class="text-muted">Base: 8 hrs/day</small>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-12 col-sm-6 col-md-4 mb-3">
-        <div class="card h-100 text-dark" style="background-color: #e3f2fd;">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <h5 class="card-title">Total Worked Hours</h5>
-                <h2 class="card-text">{{ formatHours(totalWorkedHours) }}</h2>
-              </div>
-              <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+
+      <!-- Bar Chart Card -->
+      <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-header bg-white border-0 pt-4 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-bar-chart-steps me-2 text-primary"></i>
+            OJT Hours Completed
+          </h5>
+          <div class="btn-group btn-group-sm" role="group">
+            <button 
+              type="button" 
+              class="btn" 
+              :class="groupBy === 'day' ? 'btn-primary' : 'btn-outline-secondary'"
+              @click="groupBy = 'day'"
+            >
+              Day
+            </button>
+            <button 
+              type="button" 
+              class="btn" 
+              :class="groupBy === 'week' ? 'btn-primary' : 'btn-outline-secondary'"
+              @click="groupBy = 'week'"
+            >
+              Week
+            </button>
+            <button 
+              type="button" 
+              class="btn" 
+              :class="groupBy === 'month' ? 'btn-primary' : 'btn-outline-secondary'"
+              @click="groupBy = 'month'"
+            >
+              Month
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-4">
+          <div v-if="loadingChart" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <div v-else-if="aggregatedData.length === 0" class="text-center text-muted py-4">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">No OJT hours recorded yet.</p>
+          </div>
+          <div v-else>
+            <div class="bar-chart-wrapper" :class="{ 'scrollable': groupBy === 'day' || groupBy === 'week' }">
+              <Bar :data="chartData" :options="chartOptions" :key="chartKey" />
+            </div>
+            <div class="mt-3 text-end">
+              <strong>Total: {{ formatHours(totalHours) }}</strong>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-12 col-sm-6 col-md-4 mb-3">
-        <div class="card h-100 text-dark" style="background-color: #e3f2fd;">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <h5 class="card-title">Remaining Hours</h5>
-                <h2 class="card-text">{{ formatHours(remainingHours) }}</h2>
-                <small class="text-muted">Base: 8 hours/day</small>
-              </div>
-              <i class="bi bi-hourglass-split fs-1 text-warning"></i>
-            </div>
+
+      <!-- Pie Chart Card -->
+      <div class="card border-0 shadow-sm rounded-3" v-if="hasPieData">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-pie-chart me-2 text-primary"></i>
+            Monthly Distribution
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="pie-chart-wrapper">
+            <Pie :data="pieChartData" :options="pieChartOptions" />
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Bar Chart Card -->
-    <div class="card mt-4">
-      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="mb-0">OJT Hours Completed</h5>
-        <div class="btn-group btn-group-sm" role="group">
-          <button 
-            type="button" 
-            class="btn" 
-            :class="groupBy === 'day' ? 'btn-primary' : 'btn-outline-secondary'"
-            @click="groupBy = 'day'"
-          >
-            Day
-          </button>
-          <button 
-            type="button" 
-            class="btn" 
-            :class="groupBy === 'week' ? 'btn-primary' : 'btn-outline-secondary'"
-            @click="groupBy = 'week'"
-          >
-            Week
-          </button>
-          <button 
-            type="button" 
-            class="btn" 
-            :class="groupBy === 'month' ? 'btn-primary' : 'btn-outline-secondary'"
-            @click="groupBy = 'month'"
-          >
-            Month
-          </button>
-        </div>
-      </div>
-      <div class="card-body">
-        <div v-if="loadingChart" class="text-center py-4">
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <div v-else-if="aggregatedData.length === 0" class="text-center text-muted py-4">
-          No OJT hours recorded yet.
-        </div>
-        <div v-else>
-          <div class="bar-chart-wrapper" :class="{ 'scrollable': groupBy === 'day' || groupBy === 'week' }">
-            <Bar :data="chartData" :options="chartOptions" :key="chartKey" />
-          </div>
-          <div class="mt-3 text-end">
-            <strong>Total: {{ formatHours(totalHours) }}</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pie Chart Card – Monthly Distribution -->
-    <div class="card mt-4" v-if="hasPieData">
-      <div class="card-header">
-        <h5 class="mb-0">Monthly Distribution of OJT Hours</h5>
-      </div>
-      <div class="card-body">
-        <div class="pie-chart-wrapper">
-          <Pie :data="pieChartData" :options="pieChartOptions" />
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div>
-    <div class="mt-4"></div>
   </div>
 </template>
 
@@ -382,7 +396,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Responsive bar chart container */
+.dashboard-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+.dashboard-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+.summary-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
 .bar-chart-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -391,30 +421,23 @@ onMounted(() => {
   min-width: 100%;
   height: auto;
 }
-/* For day/week views, ensure horizontal scroll if needed */
 .bar-chart-wrapper.scrollable canvas {
   min-width: 800px;
 }
-/* Pie chart responsive */
 .pie-chart-wrapper {
   max-width: 400px;
   margin: 0 auto;
   width: 100%;
 }
-/* Adjust card title and number on very small screens */
 @media (max-width: 576px) {
-  .card-title {
-    font-size: 1rem;
-  }
-  .card-text {
+  .dashboard-title {
     font-size: 1.5rem;
   }
-  .fs-1 {
-    font-size: 1.8rem !important;
+  .summary-card h3 {
+    font-size: 1.25rem;
   }
-}
-/* Ensure button group doesn't overflow */
-.btn-group {
-  flex-wrap: wrap;
+  .summary-card .fs-1 {
+    font-size: 2rem !important;
+  }
 }
 </style>

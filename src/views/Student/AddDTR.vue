@@ -1,97 +1,149 @@
 <template>
-  <div class="container-fluid mt-4" v-if="!loading">
-    <!-- Header stats -->
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5>Total Worked Hours</h5>
-            <h3>{{ formatHours(totalWorkedHours) }}</h3>
-          </div>
-        </div>
+  <div class="dtr-container" v-if="!loading">
+    <div class="container mt-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h1 class="dtr-title">
+          <i class="bi bi-calendar-check me-2 text-primary"></i>
+          OJT Time Tracker
+        </h1>
       </div>
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5>Remaining Hours</h5>
-            <h3>{{ formatHours(remainingHours) }}</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5>Total OJT Hours Required</h5>
-            <input type="number" v-model.number="totalRequiredHours" class="form-control" @change="updateSettings" />
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Months -->
-    <div v-for="month in months" :key="month.monthNumber" class="mb-5">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h3>{{ month.name }}</h3>
-        <h5>Month Total: {{ formatHours(month.totalHours) }}</h5>
+      <!-- Summary Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-3 summary-card">
+            <div class="card-body d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <i class="bi bi-stopwatch fs-1 text-primary"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-subtitle mb-1 text-muted">Total Worked</h6>
+                <h3 class="card-text mb-0 fw-bold">{{ formatHours(totalWorkedHours) }}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-3 summary-card">
+            <div class="card-body d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <i class="bi bi-hourglass-top fs-1 text-warning"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-subtitle mb-1 text-muted">Remaining</h6>
+                <h3 class="card-text mb-0 fw-bold">{{ formatHours(remainingHours) }}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-3 summary-card">
+            <div class="card-body d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <i class="bi bi-trophy fs-1 text-success"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-subtitle mb-1 text-muted">Required Total</h6>
+                <input 
+                  type="number" 
+                  class="form-control form-control-lg fw-bold" 
+                  v-model.number="totalRequiredHours" 
+                  @change="updateSettings"
+                  style="font-size: 1.5rem; padding: 0.25rem 0.5rem; width: auto;"
+                />
+                <small class="text-muted">hours</small>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="calendar-wrapper">
-        <table class="table table-bordered calendar-table">
-          <thead>
-            <tr>
-              <th>Sun</th>
-              <th>Mon</th>
-              <th>Tue</th>
-              <th>Wed</th>
-              <th>Thu</th>
-              <th>Fri</th>
-              <th>Sat</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="week in month.weeks" :key="week[0].date">
-              <td v-for="day in week" :key="day.date" :class="{'bg-light': day.isWeekend, 'table-secondary': !day.isCurrentMonth}">
-                <div v-if="day.isCurrentMonth">
-                  <div class="day-number">{{ day.day }}</div>
-                  <div class="time-inputs">
-                    <div class="mb-1">
-                      <label class="small">AM In</label>
-                      <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].am_in" @change="updateDay(day)" />
+
+      <!-- Months -->
+      <div v-for="month in months" :key="month.monthNumber" class="mb-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <h3 class="month-title">
+            <i class="bi bi-calendar3 me-2 text-primary"></i>
+            {{ month.name }}
+          </h3>
+          <h5 class="month-total">
+            <i class="bi bi-hourglass-split me-1 text-muted"></i>
+            Total: {{ formatHours(month.totalHours) }}
+          </h5>
+        </div>
+        <div class="calendar-wrapper">
+          <table class="table table-bordered calendar-table">
+            <thead>
+              <tr>
+                <th>Sun</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="week in month.weeks" :key="week[0].date">
+                <td v-for="day in week" :key="day.date" 
+                    :class="{'bg-light': day.isWeekend, 'table-secondary': !day.isCurrentMonth}">
+                  <div v-if="day.isCurrentMonth" class="day-cell">
+                    <div class="day-number">{{ day.day }}</div>
+                    <div class="time-inputs">
+                      <div class="mb-2">
+                        <label class="small text-muted">
+                          <i class="bi bi-sun me-1"></i>AM In
+                        </label>
+                        <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].am_in" @change="updateDay(day)" />
+                      </div>
+                      <div class="mb-2">
+                        <label class="small text-muted">
+                          <i class="bi bi-sun-fill me-1"></i>AM Out
+                        </label>
+                        <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].am_out" @change="updateDay(day)" />
+                      </div>
+                      <div class="mb-2">
+                        <label class="small text-muted">
+                          <i class="bi bi-moon me-1"></i>PM In
+                        </label>
+                        <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].pm_in" @change="updateDay(day)" />
+                      </div>
+                      <div class="mb-2">
+                        <label class="small text-muted">
+                          <i class="bi bi-moon-fill me-1"></i>PM Out
+                        </label>
+                        <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].pm_out" @change="updateDay(day)" />
+                      </div>
+                      <div class="daily-total small fw-bold text-primary">
+                        <i class="bi bi-hourglass me-1"></i>Total: {{ formatHours(parseFloat(dayTotalHours[day.key] || 0)) }}
+                      </div>
+                      <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click="resetDay(day)">
+                        <i class="bi bi-arrow-repeat me-1"></i> Reset
+                      </button>
                     </div>
-                    <div class="mb-1">
-                      <label class="small">AM Out</label>
-                      <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].am_out" @change="updateDay(day)" />
-                    </div>
-                    <div class="mb-1">
-                      <label class="small">PM In</label>
-                      <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].pm_in" @change="updateDay(day)" />
-                    </div>
-                    <div class="mb-1">
-                      <label class="small">PM Out</label>
-                      <input type="time" class="form-control form-control-sm" v-model="dayEntries[day.key].pm_out" @change="updateDay(day)" />
-                    </div>
-                    <div class="daily-total small fw-bold">Total: {{ formatHours(parseFloat(dayTotalHours[day.key] || 0)) }}</div>
-                    <button class="btn btn-sm btn-danger mt-1" @click="resetDay(day)">Reset</button>
                   </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <div class="mt-3 text-center">
-      <button class="btn btn-primary" @click="saveAllEntries" :disabled="saving">Save All Changes</button>
+      <!-- Save All Button -->
+      <div class="text-center mt-4">
+        <button class="btn btn-primary btn-lg px-5 rounded-pill" @click="saveAllEntries" :disabled="saving">
+          <i v-if="!saving" class="bi bi-save me-2"></i>
+          <span v-if="saving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          {{ saving ? 'Saving...' : 'Save All Changes' }}
+        </button>
+      </div>
     </div>
   </div>
-  <div v-else class="text-center mt-5">
-    <div class="spinner-border" role="status">
+  <div v-else class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
-  </div>
-
-    <div>
-    <div class="mt-4"></div>
   </div>
 </template>
 
@@ -178,20 +230,11 @@ const recalcMonthTotals = () => {
 
 const buildCalendar = () => {
   const monthsData = []
-  let currentMonth = startDate.getMonth()
-  let currentYear = startDate.getFullYear()
-  let monthStart = new Date(currentYear, currentMonth, 1)
-  let monthEnd = new Date(currentYear, currentMonth, 1)
-  monthEnd.setMonth(monthEnd.getMonth() + 1)
-  monthEnd.setDate(monthEnd.getDate() - 1)
-
-  // We'll generate weeks for each month from Jan to May 2026
   for (let m = 0; m < 5; m++) {
     const monthNumber = m + 1
     const monthName = new Date(2026, m, 1).toLocaleString('default', { month: 'long' })
     const weeks = []
     let current = new Date(2026, m, 1)
-    // adjust to previous Sunday
     current.setDate(current.getDate() - current.getDay())
     const monthEndDate = new Date(2026, m + 1, 0)
     while (current <= monthEndDate) {
@@ -211,7 +254,6 @@ const buildCalendar = () => {
           isCurrentMonth,
           isWeekend,
         })
-        // Initialize entry for every day (even if not in current month)
         if (!dayEntries.value[key]) {
           dayEntries.value[key] = { am_in: '', am_out: '', pm_in: '', pm_out: '' }
         }
@@ -325,24 +367,69 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.dtr-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+.dtr-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+.summary-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+.month-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0d6efd;
+}
+.month-total {
+  font-size: 1.2rem;
+  color: #6c757d;
+}
 .calendar-wrapper {
   overflow-x: auto;
+  border-radius: 0.5rem;
 }
 .calendar-table {
   min-width: 800px;
   width: 100%;
-  table-layout: fixed;
+  background-color: white;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 .calendar-table td, .calendar-table th {
   vertical-align: top;
   width: 14.28%;
+  padding: 0.75rem;
+  border-color: #e9ecef;
+}
+.calendar-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+.day-cell {
+  min-height: 180px;
 }
 .day-number {
   font-weight: bold;
+  font-size: 1rem;
   margin-bottom: 0.5rem;
+  color: #0d6efd;
 }
 .time-inputs input {
   margin-bottom: 0.25rem;
+  border-radius: 0.375rem;
 }
 .daily-total {
   margin-top: 0.5rem;
@@ -353,5 +440,29 @@ onMounted(async () => {
 }
 .table-secondary {
   background-color: #e9ecef;
+}
+.btn-outline-danger {
+  border-width: 1px;
+}
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
+@media (max-width: 576px) {
+  .dtr-title {
+    font-size: 1.5rem;
+  }
+  .month-title {
+    font-size: 1.25rem;
+  }
+  .month-total {
+    font-size: 1rem;
+  }
+  .summary-card h3 {
+    font-size: 1.25rem;
+  }
+  .summary-card .fs-1 {
+    font-size: 2rem !important;
+  }
 }
 </style>

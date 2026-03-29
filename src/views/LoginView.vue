@@ -1,26 +1,50 @@
 <template>
-  <div class="container mt-5">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header">Login</div>
-          <div class="card-body">
-            <form @submit.prevent="handleLogin">
-              <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" v-model="email" required />
+  <div class="login-wrapper">
+    <div class="container">
+      <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-11 col-sm-8 col-md-6 col-lg-5">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-lg-5">
+              <div class="text-center mb-4">
+                <i class="bi bi-clock-history text-primary fs-1"></i>
+                <h3 class="text-primary mt-2">OJT Tracking</h3>
+                <p class="text-muted small">Login to continue</p>
               </div>
-              <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-control" v-model="password" required />
-              </div>
-              <button type="submit" class="btn btn-primary" :disabled="loading">
-                {{ loading ? 'Logging in...' : 'Login' }}
-              </button>
-              <p class="mt-3">
-                Don't have an account? <router-link to="/register">Register</router-link>
-              </p>
-            </form>
+              <form @submit.prevent="handleLogin">
+                <div class="mb-3">
+                  <label class="form-label small text-secondary">Email</label>
+                  <input 
+                    type="email" 
+                    class="form-control" 
+                    v-model="email" 
+                    placeholder="student@example.com"
+                    required 
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small text-secondary">Password</label>
+                  <input 
+                    type="password" 
+                    class="form-control" 
+                    v-model="password" 
+                    placeholder="••••••••"
+                    required 
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  class="btn btn-primary w-100" 
+                  :disabled="loading"
+                >
+                  <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  {{ loading ? 'Logging in...' : 'Login' }}
+                </button>
+                <p class="mt-3 text-center small">
+                  Don't have an account? 
+                  <router-link to="/register" class="text-decoration-none">Register</router-link>
+                </p>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -31,19 +55,15 @@
       <div 
         v-if="toast.show" 
         class="toast show" 
-        role="alert" 
-        aria-live="assertive" 
-        aria-atomic="true"
+        role="alert"
         :class="toast.type === 'success' ? 'bg-success' : 'bg-danger'"
         style="color: white;"
       >
         <div class="toast-header" :class="toast.type === 'success' ? 'bg-success' : 'bg-danger'" style="color: white;">
           <strong class="me-auto">{{ toast.type === 'success' ? 'Success' : 'Error' }}</strong>
-          <button type="button" class="btn-close btn-close-white" @click="closeToast" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" @click="closeToast"></button>
         </div>
-        <div class="toast-body">
-          {{ toast.message }}
-        </div>
+        <div class="toast-body">{{ toast.message }}</div>
       </div>
     </div>
   </div>
@@ -60,43 +80,25 @@ const email = ref('')
 const password = ref('')
 const loading = ref(false)
 
-// Toast state
-const toast = ref({
-  show: false,
-  type: 'success',
-  message: '',
-})
+const toast = ref({ show: false, type: 'success', message: '' })
 
-// Function to show toast
 const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message,
-  }
-  // Auto-hide after 3 seconds
-  setTimeout(() => {
-    closeToast()
-  }, 3000)
+  toast.value = { show: true, type, message }
+  setTimeout(() => { toast.value.show = false }, 3000)
 }
 
-const closeToast = () => {
-  toast.value.show = false
-}
+const closeToast = () => { toast.value.show = false }
 
 const handleLogin = async () => {
   loading.value = true
   try {
     await authStore.login(email.value, password.value)
-    // Show success toast before redirect
     showToast('success', 'Login successful! Redirecting...')
-    // Redirect after a short delay to allow toast to be seen
     setTimeout(() => {
       if (authStore.role === 'admin') router.push('/admin-dashboard')
       else router.push('/student-dashboard')
     }, 1000)
   } catch (error) {
-    console.error('Login error:', error)
     showToast('error', `Login failed: ${error.message}`)
   } finally {
     loading.value = false
@@ -105,7 +107,23 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.toast-container {
-  z-index: 1050;
+.login-wrapper {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+.card {
+  border-radius: 0.75rem;
+}
+.btn-primary {
+  background-color: #0d6efd;
+  border: none;
+  padding: 0.6rem;
+}
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
 }
 </style>
