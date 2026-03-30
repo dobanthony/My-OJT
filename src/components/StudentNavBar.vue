@@ -11,30 +11,27 @@
       <button 
         class="navbar-toggler border-0" 
         type="button" 
-        data-bs-toggle="collapse" 
-        data-bs-target="#studentNavbar" 
-        aria-controls="studentNavbar" 
-        aria-expanded="false" 
-        aria-label="Toggle navigation"
+        @click="toggleNavbar"
+        :aria-expanded="navbarOpen"
       >
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <!-- Collapsible content -->
-      <div class="collapse navbar-collapse" id="studentNavbar">
+      <div class="collapse navbar-collapse" :class="{ show: navbarOpen }" id="studentNavbar">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <router-link class="nav-link" to="/student-dashboard">
+            <router-link class="nav-link" to="/student-dashboard" @click="closeNavbar">
               <i class="bi bi-speedometer2 me-1"></i> Dashboard
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/student/dtr">
+            <router-link class="nav-link" to="/student/dtr" @click="closeNavbar">
               <i class="bi bi-calendar-check me-1"></i> DTR
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/student/avatar">
+            <router-link class="nav-link" to="/student/avatar" @click="closeNavbar">
               <i class="bi bi-person-circle me-1"></i> Profile
             </router-link>
           </li>
@@ -71,7 +68,19 @@ import { useAuthStore } from '../store/auth'
 const authStore = useAuthStore()
 const router = useRouter()
 const dropdownOpen = ref(false)
+const navbarOpen = ref(false)
 
+// Toggle mobile navbar
+const toggleNavbar = () => {
+  navbarOpen.value = !navbarOpen.value
+}
+
+// Close mobile navbar (called after link click)
+const closeNavbar = () => {
+  navbarOpen.value = false
+}
+
+// Toggle user dropdown
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
 }
@@ -81,6 +90,11 @@ const handleClickOutside = (event) => {
   const dropdownElement = event.target.closest('.dropdown')
   if (!dropdownElement && dropdownOpen.value) {
     dropdownOpen.value = false
+  }
+  // Also close navbar if clicking outside and it's open
+  const navbarElement = event.target.closest('.navbar-collapse')
+  if (!navbarElement && navbarOpen.value && !event.target.closest('.navbar-toggler')) {
+    navbarOpen.value = false
   }
 }
 
@@ -126,9 +140,12 @@ const logout = async () => {
 .router-link-active {
   color: #0d6efd !important;
 }
-/* Ensure dropdown appears above other elements */
 .dropdown-menu {
   z-index: 1050;
+}
+/* Ensure collapse transition works */
+.navbar-collapse {
+  transition: all 0.3s ease;
 }
 @media (max-width: 991.98px) {
   .navbar-nav {
