@@ -38,20 +38,18 @@
               <i class="bi bi-person-circle me-1"></i> Profile
             </router-link>
           </li>
-          <!-- User Dropdown -->
-          <li class="nav-item dropdown">
+          <!-- User Dropdown (Vue-managed) -->
+          <li class="nav-item dropdown" :class="{ show: dropdownOpen }">
             <a 
               class="nav-link dropdown-toggle" 
               href="#" 
-              id="studentDropdown" 
-              role="button" 
-              data-bs-toggle="dropdown" 
-              aria-expanded="false"
+              role="button"
+              @click.prevent="toggleDropdown"
             >
               <i class="bi bi-person-badge me-1"></i>
               {{ authStore.profile?.full_name || authStore.user?.email }}
             </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="studentDropdown">
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" :class="{ show: dropdownOpen }">
               <li>
                 <button class="dropdown-item text-danger" @click="logout">
                   <i class="bi bi-box-arrow-right me-2"></i> Logout
@@ -66,11 +64,33 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const dropdownOpen = ref(false)
+
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  const dropdownElement = event.target.closest('.dropdown')
+  if (!dropdownElement && dropdownOpen.value) {
+    dropdownOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const logout = async () => {
   await authStore.logout()
@@ -79,7 +99,6 @@ const logout = async () => {
 </script>
 
 <style scoped>
-/* Minimalist styling */
 .navbar {
   padding: 0.75rem 1rem;
 }
@@ -104,9 +123,12 @@ const logout = async () => {
 .dropdown-item.text-danger:hover {
   background-color: #fee;
 }
-/* Active link highlight (optional if router-link-active class is used) */
 .router-link-active {
   color: #0d6efd !important;
+}
+/* Ensure dropdown appears above other elements */
+.dropdown-menu {
+  z-index: 1050;
 }
 @media (max-width: 991.98px) {
   .navbar-nav {

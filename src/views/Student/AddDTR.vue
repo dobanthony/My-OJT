@@ -119,7 +119,7 @@
                       <div class="daily-total small fw-bold text-primary">
                         <i class="bi bi-hourglass me-1"></i>Total: {{ formatHours(parseFloat(dayTotalHours[day.key] || 0)) }}
                       </div>
-                      <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click="resetDay(day)">
+                      <button class="btn btn-sm btn-outline-danger w-100 mt-2" @click="openResetModal(day)">
                         <i class="bi bi-arrow-repeat me-1"></i> Reset
                       </button>
                     </div>
@@ -140,6 +140,26 @@
         </button>
       </div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-labelledby="resetConfirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="resetConfirmModalLabel">Confirm Reset</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to reset all time entries for <strong>{{ dayToReset ? `${getMonthName(dayToReset.month)} ${dayToReset.day}` : '' }}</strong>?</p>
+            <p class="text-muted small">This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" @click="confirmReset">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div v-else class="d-flex justify-content-center align-items-center min-vh-100">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
@@ -152,6 +172,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../../store/auth'
 import { ojtModel } from '../../models/ojt'
+import { Modal } from 'bootstrap'
 
 const authStore = useAuthStore()
 const saving = ref(false)
@@ -170,6 +191,15 @@ const totalRequiredHours = ref(0)
 const totalWorkedHours = ref(0)
 
 const remainingHours = computed(() => Math.max(0, totalRequiredHours.value - totalWorkedHours.value))
+
+// Modal control
+let resetModal = null
+const dayToReset = ref(null)
+
+// Helper to get month name from month number
+const getMonthName = (monthNumber) => {
+  return new Date(2026, monthNumber - 1, 1).toLocaleString('default', { month: 'long' })
+}
 
 // Convert decimal hours to "X hr Y min" format
 const formatHours = (decimalHours) => {
@@ -300,6 +330,32 @@ const updateDay = async (day) => {
   } catch (err) {
     console.error('Save failed:', err)
   }
+}
+
+// Open confirmation modal with the day to reset
+const openResetModal = (day) => {
+  dayToReset.value = day
+  if (resetModal) {
+    resetModal.show()
+  } else {
+    const modalElement = document.getElementById('resetConfirmModal')
+    if (modalElement) {
+      resetModal = new Modal(modalElement)
+      resetModal.show()
+    }
+  }
+}
+
+// Confirm reset – clear the day's entries
+const confirmReset = () => {
+  if (dayToReset.value) {
+    resetDay(dayToReset.value)
+  }
+  // Close modal
+  if (resetModal) {
+    resetModal.hide()
+  }
+  dayToReset.value = null
 }
 
 const resetDay = (day) => {

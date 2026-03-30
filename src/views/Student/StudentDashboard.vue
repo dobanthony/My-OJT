@@ -53,6 +53,11 @@
                 <h6 class="card-subtitle mb-1 text-muted">Remaining</h6>
                 <h3 class="card-text mb-0 fw-bold">{{ formatHours(remainingHours) }}</h3>
                 <small class="text-muted">Base: 8 hrs/day</small>
+                <div class="mt-1" v-if="remainingHours > 0">
+                  <small class="text-muted">
+                    ≈ {{ remainingDays.toFixed(1) }} day{{ remainingDays !== 1 ? 's' : '' }} of OJT needed
+                  </small>
+                </div>
               </div>
             </div>
           </div>
@@ -198,6 +203,7 @@ const totalWorkedHours = computed(() => {
 })
 
 const remainingHours = computed(() => Math.max(0, totalRequiredHours.value - totalWorkedHours.value))
+const remainingDays = computed(() => remainingHours.value / 8)
 
 // Week number for 2026
 const getWeekNumber = (month, day) => {
