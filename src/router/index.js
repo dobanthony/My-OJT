@@ -3,8 +3,18 @@ import { useAuthStore } from '../store/auth'
 
 const routes = [
   { path: '/', redirect: '/login' },
-  { path: '/login', name: 'Login', component: () => import('../views/LoginView.vue') },
-  { path: '/register', name: 'Register', component: () => import('../views/RegisterView.vue') },
+  { 
+    path: '/login', 
+    name: 'Login', 
+    component: () => import('../views/LoginView.vue'),
+    meta: { hideNavbar: true }  // Add this
+  },
+  { 
+    path: '/register', 
+    name: 'Register', 
+    component: () => import('../views/RegisterView.vue'),
+    meta: { hideNavbar: true }  // Add this
+  },
 
   // Student routes
   {
@@ -33,7 +43,7 @@ const routes = [
     component: () => import('../views/Admin/AdminDashboard.vue'),
     meta: { requiresAuth: true, role: 'admin' },
   },
-    {
+  {
     path: '/admin/users',
     name: 'AdminUsers',
     component: () => import('../views/Admin/UserManagement.vue'),
