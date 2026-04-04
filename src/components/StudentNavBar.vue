@@ -30,11 +30,7 @@
               <i class="bi bi-calendar-check me-1"></i> DTR
             </router-link>
           </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/student/avatar" @click="closeNavbar">
-              <i class="bi bi-person-circle me-1"></i> Profile
-            </router-link>
-          </li>
+          <!-- Profile link removed -->
           <!-- User Dropdown (Vue-managed) -->
           <li class="nav-item dropdown" :class="{ show: dropdownOpen }">
             <a 
@@ -44,7 +40,7 @@
               @click.prevent="toggleDropdown"
             >
               <i class="bi bi-person-badge me-1"></i>
-              {{ authStore.profile?.full_name || authStore.user?.email }}
+              {{ authStore.user?.email }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" :class="{ show: dropdownOpen }">
               <li>

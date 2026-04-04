@@ -56,35 +56,4 @@ export const authModel = {
 
     return { ...user, role: profile?.role || 'student' }
   },
-
-  // Get user's avatar/profile information
-  async getUserProfile(userId) {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle()
-    if (error) throw error
-    return data
-  },
-
-  // Create or update user profile (avatar)
-  async upsertUserProfile(userId, profileData) {
-    const { full_name, age, gender, address, contact_number } = profileData
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .upsert({
-        id: userId,
-        full_name,
-        age: age ? parseInt(age) : null,
-        gender,
-        address,
-        contact_number,
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single()
-    if (error) throw error
-    return data
-  },
 }
