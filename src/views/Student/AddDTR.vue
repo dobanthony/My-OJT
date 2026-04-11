@@ -1,12 +1,15 @@
 <template>
   <div class="dtr-container" v-if="!loading">
     <div class="container mt-4">
-      <!-- Header -->
+      <!-- Header with Download Button -->
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <h1 class="dtr-title">
           <i class="bi bi-calendar-check me-2 text-primary"></i>
           OJT Time Tracker
         </h1>
+        <button class="btn btn-outline-danger rounded-pill" @click="downloadPDF">
+          <i class="bi bi-file-pdf me-2"></i>Download PDF
+        </button>
       </div>
 
       <!-- Summary Cards -->
@@ -173,6 +176,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../../store/auth'
 import { ojtModel } from '../../models/ojt'
 import { Modal } from 'bootstrap'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const authStore = useAuthStore()
 const saving = ref(false)
@@ -412,6 +417,137 @@ const updateSettings = async () => {
   } catch (err) {
     console.error('Failed to update settings:', err)
   }
+}
+
+// ========== PDF Generation ==========
+const downloadPDF = () => {
+  const doc = new jsPDF()
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const margin = 15
+  let yPos = 20
+
+  // Header
+  doc.setFontSize(20)
+  doc.setTextColor(13, 110, 253) // Bootstrap primary
+  doc.text('OJT Time Tracker Report', pageWidth / 2, yPos, { align: 'center' })
+  
+  yPos += 10
+  doc.setFontSize(12)
+  doc.setTextColor(100, 100, 100)
+  const userName = authStore.user?.name || authStore.user?.email || 'User'
+  doc.text(`Generated for: ${userName}`, pageWidth / 2, yPos, { align: 'center' })
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos + 6, { align: 'center' })
+
+  yPos += 20
+
+  // Summary Section
+  doc.setFontSize(14)
+  doc.setTextColor(0, 0, 0)
+  doc.text('Summary', margin, yPos)
+  yPos += 8
+
+  const summaryData = [
+    ['Total Worked', formatHours(totalWorkedHours.value)],
+    ['Remaining', formatHours(remainingHours.value)],
+    ['Required Total', `${totalRequiredHours.value} hours`]
+  ]
+
+  autoTable(doc, {
+    startY: yPos,
+    head: [['Metric', 'Value']],
+    body: summaryData,
+    theme: 'grid',
+    headStyles: { fillColor: [13, 110, 253] },
+    margin: { left: margin, right: margin },
+    tableWidth: 'auto',
+    columnStyles: {
+      0: { cellWidth: 80 },
+      1: { cellWidth: 60 }
+    }
+  })
+
+  yPos = doc.lastAutoTable.finalY + 15
+
+  // Monthly Tables
+  doc.setFontSize(14)
+  doc.text('Monthly Breakdown', margin, yPos)
+  yPos += 6
+
+  months.value.forEach((month) => {
+    // Check if we need a new page
+    if (yPos > 250) {
+      doc.addPage()
+      yPos = 20
+    }
+
+    // Month header
+    doc.setFontSize(13)
+    doc.setTextColor(13, 110, 253)
+    doc.text(`${month.name} – Total: ${formatHours(month.totalHours)}`, margin, yPos)
+    yPos += 6
+
+    // Build table rows for this month
+    const tableRows = []
+    month.weeks.forEach(week => {
+      week.forEach(day => {
+        if (!day.isCurrentMonth) return
+        const entry = dayEntries.value[day.key] || {}
+        const total = dayTotalHours.value[day.key] || '0.00'
+        // Format date like "Jan 5"
+        const dateStr = `${month.name.substring(0, 3)} ${day.day}`
+        const dayName = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })
+        
+        tableRows.push([
+          dateStr,
+          dayName,
+          entry.am_in || '—',
+          entry.am_out || '—',
+          entry.pm_in || '—',
+          entry.pm_out || '—',
+          formatHours(parseFloat(total))
+        ])
+      })
+    })
+
+    if (tableRows.length === 0) {
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text('No entries for this month.', margin, yPos)
+      yPos += 8
+    } else {
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Date', 'Day', 'AM In', 'AM Out', 'PM In', 'PM Out', 'Total']],
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { fillColor: [108, 117, 125] }, // secondary gray
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 9, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 22 },
+          1: { cellWidth: 18 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 20 },
+          5: { cellWidth: 20 },
+          6: { cellWidth: 25 }
+        }
+      })
+      yPos = doc.lastAutoTable.finalY + 10
+    }
+  })
+
+  // Footer - page numbers
+  const totalPages = doc.internal.getNumberOfPages()
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i)
+    doc.setFontSize(9)
+    doc.setTextColor(150, 150, 150)
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, doc.internal.pageSize.getHeight() - 10, { align: 'right' })
+  }
+
+  // Save the PDF
+  doc.save(`OJT_Report_${new Date().toISOString().slice(0,10)}.pdf`)
 }
 
 onMounted(async () => {
